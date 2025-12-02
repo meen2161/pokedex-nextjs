@@ -3,6 +3,7 @@ import InfiniteScroll from "react-infinite-scroll-component";
 import { usePokemonList } from "@/src/hooks/usePokemon";
 import { PokemonResult } from "@/src/types/pokemon";
 import PokemonCard from "./PokemonCard";
+import { useFavoriteStore } from "@/src/store/useFavoriteStore";
 
 interface PokemonSelectorModalProps {
   isOpen: boolean;
@@ -14,6 +15,7 @@ const PokemonSelectorModal: FC<PokemonSelectorModalProps> = ({ isOpen, onClose, 
   const [searchTerm, setSearchTerm] = useState("");
   const [displayedCount, setDisplayedCount] = useState(20);
   const { data: pokemonList = [] } = usePokemonList();
+  const { favorites } = useFavoriteStore();
 
   const getPokemonId = (url: string): number => {
     const segments = url.split('/');
@@ -27,12 +29,20 @@ const PokemonSelectorModal: FC<PokemonSelectorModalProps> = ({ isOpen, onClose, 
     );
   }, [pokemonList, searchTerm]);
 
+  const favoriteList = useMemo(() => {
+    return filteredPokemon.filter(p => favorites.includes(getPokemonId(p.url)));
+  }, [filteredPokemon, favorites]);
+
+  const nonFavoriteList = useMemo(() => {
+    return filteredPokemon.filter(p => !favorites.includes(getPokemonId(p.url)));
+  }, [filteredPokemon, favorites]);
+
   useEffect(() => {
     setDisplayedCount(20);
   }, [searchTerm]);
 
-  const displayedPokemon = filteredPokemon.slice(0, displayedCount);
-  const hasMore = displayedPokemon.length < filteredPokemon.length;
+  const displayedPokemon = nonFavoriteList.slice(0, displayedCount);
+  const hasMore = displayedPokemon.length < nonFavoriteList.length;
 
   const loadMore = () => {
     setDisplayedCount((prev) => prev + 20);
@@ -73,36 +83,71 @@ const PokemonSelectorModal: FC<PokemonSelectorModalProps> = ({ isOpen, onClose, 
         </div>
 
         <div id="scrollableDiv" className="flex-1 overflow-y-auto p-4 bg-gray-50">
-          {displayedPokemon.length === 0 ? (
+          {filteredPokemon.length === 0 ? (
             <div className="text-center py-10 text-gray-500">
               No Pokémon found
             </div>
           ) : (
-            <InfiniteScroll
-              dataLength={displayedPokemon.length}
-              next={loadMore}
-              hasMore={hasMore}
-              loader={
-                <div className="col-span-full text-center py-4 overflow-hidden">
-                  <div className="w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto"></div>
-                </div>
-              }
-              scrollableTarget="scrollableDiv"
-              className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4"
-            >
-              {displayedPokemon.map((pokemon) => {
-                const id = getPokemonId(pokemon.url);
-                return (
-                  <div key={pokemon.name} className="transform scale-90 hover:scale-100 transition-transform">
-                    <PokemonCard
-                      pokemon={pokemon}
-                      pokemonId={id}
-                      onClick={() => onSelect(pokemon)}
-                    />
+            <>
+              {favoriteList.length > 0 && (
+                <div className="mb-8">
+                  <h3 className="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#fbbf24" className="w-6 h-6">
+                      <path fillRule="evenodd" d="M10.788 3.21c.448-1.077 1.976-1.077 2.424 0l2.082 5.007 5.404.433c1.164.093 1.636 1.545.749 2.305l-4.117 3.527 1.257 5.273c.271 1.136-.964 2.033-1.96 1.425L12 18.354 7.373 21.18c-.996.608-2.231-.29-1.96-1.425l1.257-5.273-4.117-3.527c-.887-.76-.415-2.212.749-2.305l5.404-.433 2.082-5.006z" clipRule="evenodd" />
+                    </svg>
+                    Favorites
+                  </h3>
+                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                    {favoriteList.map((pokemon) => {
+                      const id = getPokemonId(pokemon.url);
+                      return (
+                        <div key={pokemon.name} className="transform scale-90 hover:scale-100 transition-transform">
+                          <PokemonCard
+                            pokemon={pokemon}
+                            pokemonId={id}
+                            onClick={() => onSelect(pokemon)}
+                          />
+                        </div>
+                      );
+                    })}
                   </div>
-                );
-              })}
-            </InfiniteScroll>
+                  <div className="border-b border-gray-200 mt-6 mb-6"></div>
+                </div>
+              )}
+
+              {nonFavoriteList.length > 0 && (
+                <div>
+                  {favoriteList.length > 0 && (
+                    <h3 className="text-xl font-bold text-gray-800 mb-4">All Pokémon</h3>
+                  )}
+                  <InfiniteScroll
+                    dataLength={displayedPokemon.length}
+                    next={loadMore}
+                    hasMore={hasMore}
+                    loader={
+                      <div className="col-span-full text-center py-4 overflow-hidden">
+                        <div className="w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto"></div>
+                      </div>
+                    }
+                    scrollableTarget="scrollableDiv"
+                    className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4"
+                  >
+                    {displayedPokemon.map((pokemon) => {
+                      const id = getPokemonId(pokemon.url);
+                      return (
+                        <div key={pokemon.name} className="transform scale-90 hover:scale-100 transition-transform">
+                          <PokemonCard
+                            pokemon={pokemon}
+                            pokemonId={id}
+                            onClick={() => onSelect(pokemon)}
+                          />
+                        </div>
+                      );
+                    })}
+                  </InfiniteScroll>
+                </div>
+              )}
+            </>
           )}
         </div>
       </div>

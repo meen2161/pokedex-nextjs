@@ -7,8 +7,8 @@ import { usePokemonList } from "@/src/hooks/usePokemon";
 import { PokemonResult } from "@/src/types/pokemon";
 import PokemonCard from "@/src/components/PokemonCard";
 import { useFilterStore } from "@/src/store/useFilterStore";
+import { useFavoriteStore } from "@/src/store/useFavoriteStore";
 import Header from "@/src/components/Header";
-
 
 const Pokedex: FC = () => {
   const router = useRouter();
@@ -19,10 +19,9 @@ const Pokedex: FC = () => {
   const [pokemonTypesCache, setPokemonTypesCache] = useState<Map<number, string[]>>(new Map());
   const [isLoadingTypes, setIsLoadingTypes] = useState(false);
   const itemsPerPage = 20;
-
   const filterDropdownRef = useRef<HTMLDivElement>(null);
-
   const { selectedTypes, toggleType, clearFilters } = useFilterStore();
+  const { favorites } = useFavoriteStore();
   const { data: pokemonList = [], isLoading, error } = usePokemonList();
 
   const pokemonTypes = [
@@ -60,7 +59,6 @@ const Pokedex: FC = () => {
     return parseInt(segments[segments.length - 2]);
   };
 
-  // Fetch pokemon types for filtering (in background)
   useEffect(() => {
     const fetchPokemonTypes = async () => {
       if (pokemonList.length === 0 || pokemonTypesCache.size > 0) return;
@@ -69,7 +67,6 @@ const Pokedex: FC = () => {
       const typesMap = new Map<number, string[]>();
 
       try {
-        // Fetch types in batches to avoid overwhelming the API
         const batchSize = 50;
         for (let i = 0; i < pokemonList.length; i += batchSize) {
           const batch = pokemonList.slice(i, i + batchSize);
@@ -86,7 +83,6 @@ const Pokedex: FC = () => {
           });
           await Promise.all(promises);
 
-          // Update cache after each batch
           setPokemonTypesCache(new Map(typesMap));
         }
       } catch (error) {
@@ -102,20 +98,16 @@ const Pokedex: FC = () => {
   const filteredPokemon = useMemo(() => {
     let filtered = pokemonList;
 
-    // Filter by search term
     if (searchTerm) {
       filtered = filtered.filter(pokemon =>
         pokemon.name.toLowerCase().includes(searchTerm.toLowerCase())
       );
     }
 
-    // Filter by types
     if (selectedTypes.length > 0 && pokemonTypesCache.size > 0) {
       filtered = filtered.filter((pokemon) => {
         const pokemonId = getPokemonId(pokemon.url);
         const pokemonTypes = pokemonTypesCache.get(pokemonId) || [];
-
-        // Check if pokemon has at least one of the selected types
         return selectedTypes.some(selectedType =>
           pokemonTypes.includes(selectedType)
         );
@@ -125,24 +117,31 @@ const Pokedex: FC = () => {
     return filtered;
   }, [pokemonList, searchTerm, selectedTypes, pokemonTypesCache]);
 
+  const favoriteList = useMemo(() => {
+    return filteredPokemon.filter(p => favorites.includes(getPokemonId(p.url)));
+  }, [filteredPokemon, favorites]);
+
+  const nonFavoriteList = useMemo(() => {
+    return filteredPokemon.filter(p => !favorites.includes(getPokemonId(p.url)));
+  }, [filteredPokemon, favorites]);
+
   useEffect(() => {
-    setDisplayedPokemon(filteredPokemon.slice(0, itemsPerPage));
+    setDisplayedPokemon(nonFavoriteList.slice(0, itemsPerPage));
     setCurrentPage(0);
-  }, [filteredPokemon, itemsPerPage]);
+  }, [nonFavoriteList, itemsPerPage]);
 
   const loadMorePokemon = () => {
     const nextPage = currentPage + 1;
     const startIndex = nextPage * itemsPerPage;
     const endIndex = startIndex + itemsPerPage;
-    const newPokemon = filteredPokemon.slice(startIndex, endIndex);
+    const newPokemon = nonFavoriteList.slice(startIndex, endIndex);
 
     setDisplayedPokemon(prev => [...prev, ...newPokemon]);
     setCurrentPage(nextPage);
   };
 
-  const hasMore = displayedPokemon.length < filteredPokemon.length;
+  const hasMore = displayedPokemon.length < nonFavoriteList.length;
 
-  // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (filterDropdownRef.current && !filterDropdownRef.current.contains(event.target as Node)) {
@@ -289,36 +288,68 @@ const Pokedex: FC = () => {
             </p>
           </div>
         ) : (
-          <InfiniteScroll
-            dataLength={displayedPokemon.length}
-            next={loadMorePokemon}
-            hasMore={hasMore}
-            loader={
-              <div className="text-center py-8">
-                <div className="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-2"></div>
-                <p className="text-gray-600">Loading more Pokémon...</p>
+          <>
+            {favoriteList.length > 0 && (
+              <div className="mb-12">
+                <h2 className="text-2xl font-bold text-gray-800 mb-6 flex items-center gap-2">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#fbbf24" className="w-8 h-8">
+                    <path fillRule="evenodd" d="M10.788 3.21c.448-1.077 1.976-1.077 2.424 0l2.082 5.007 5.404.433c1.164.093 1.636 1.545.749 2.305l-4.117 3.527 1.257 5.273c.271 1.136-.964 2.033-1.96 1.425L12 18.354 7.373 21.18c-.996.608-2.231-.29-1.96-1.425l1.257-5.273-4.117-3.527c-.887-.76-.415-2.212.749-2.305l5.404-.433 2.082-5.006z" clipRule="evenodd" />
+                  </svg>
+                  Favorites
+                </h2>
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+                  {favoriteList.map((pokemon) => {
+                    const pokemonId = getPokemonId(pokemon.url);
+                    return (
+                      <PokemonCard
+                        key={pokemon.name}
+                        pokemon={pokemon}
+                        pokemonId={pokemonId}
+                        onClick={() => router.push(`/pokemon/${pokemonId}`)}
+                      />
+                    );
+                  })}
+                </div>
+                <div className="border-b border-gray-200 mt-8"></div>
               </div>
-            }
-            endMessage={
-              <div className="text-center py-8">
-                <p className="text-gray-500 font-medium">What is your favorite Pokémon? 👀</p>
+            )}
+
+            {nonFavoriteList.length > 0 && (
+              <div className="mb-6">
+                <h2 className="text-2xl font-bold text-gray-800 mb-6">All Pokémon</h2>
+                <InfiniteScroll
+                  dataLength={displayedPokemon.length}
+                  next={loadMorePokemon}
+                  hasMore={hasMore}
+                  loader={
+                    <div className="text-center py-8">
+                      <div className="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-2"></div>
+                      <p className="text-gray-600">Loading more Pokémon...</p>
+                    </div>
+                  }
+                  endMessage={
+                    <div className="text-center py-8">
+                      <p className="text-gray-500 font-medium">That's all folks! 🎬</p>
+                    </div>
+                  }
+                >
+                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+                    {displayedPokemon.map((pokemon) => {
+                      const pokemonId = getPokemonId(pokemon.url);
+                      return (
+                        <PokemonCard
+                          key={pokemon.name}
+                          pokemon={pokemon}
+                          pokemonId={pokemonId}
+                          onClick={() => router.push(`/pokemon/${pokemonId}`)}
+                        />
+                      );
+                    })}
+                  </div>
+                </InfiniteScroll>
               </div>
-            }
-          >
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-              {displayedPokemon.map((pokemon) => {
-                const pokemonId = getPokemonId(pokemon.url);
-                return (
-                  <PokemonCard
-                    key={pokemon.name}
-                    pokemon={pokemon}
-                    pokemonId={pokemonId}
-                    onClick={() => router.push(`/pokemon/${pokemonId}`)}
-                  />
-                );
-              })}
-            </div>
-          </InfiniteScroll>
+            )}
+          </>
         )}
       </div>
     </div>

@@ -11,9 +11,7 @@ const PokemonDetail: FC = () => {
   const pokemonId = parseInt(params.id as string);
   const audioRef = useRef<HTMLAudioElement>(null);
   const [isPlaying, setIsPlaying] = useState(false);
-
   const { data: pokemon, isLoading, error } = usePokemonDetail(pokemonId);
-
   const formatPokemonName = (name: string): string => {
     return name.charAt(0).toUpperCase() + name.slice(1).replace('-', ' ');
   };
