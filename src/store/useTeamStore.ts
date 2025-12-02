@@ -12,7 +12,6 @@ interface TeamState {
 export const useTeamStore = create<TeamState>()(
   persist(
     (set) => ({
-      // เริ่มต้นด้วย Array ว่าง 6 ช่อง
       team: Array(6).fill(null),
 
       setSlot: (index, pokemon) =>

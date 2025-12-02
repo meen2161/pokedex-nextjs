@@ -188,12 +188,9 @@ const Pokedex: FC = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
-
-      {/* Header */}
       <Header />
 
       <div className="max-w-7xl mx-auto px-4">
-        {/* Search Bar and Filter Button */}
         <div className="mt-6 flex items-center gap-3">
           <div className="relative flex-1 max-w-md">
             <input
@@ -208,7 +205,6 @@ const Pokedex: FC = () => {
             </svg>
           </div>
 
-          {/* Filter Button */}
           <div className="relative" ref={filterDropdownRef}>
             <button
               onClick={() => setShowTypeFilter(!showTypeFilter)}
@@ -231,7 +227,6 @@ const Pokedex: FC = () => {
               )}
             </button>
 
-            {/* Type Filter Dropdown */}
             {showTypeFilter && (
               <div className="absolute top-full mt-2 right-0 bg-white rounded-xl shadow-xl border border-gray-200 p-4 w-80 z-20">
                 <div className="flex items-center justify-between mb-3">
@@ -264,7 +259,6 @@ const Pokedex: FC = () => {
           </div>
         </div>
 
-        {/* Selected Types Display */}
         {selectedTypes.length > 0 && (
           <div className="mt-3 flex flex-wrap gap-2">
             {selectedTypes.map((type) => (
@@ -287,7 +281,6 @@ const Pokedex: FC = () => {
         )}
       </div>
 
-      {/* Pokemon Grid with Infinite Scroll */}
       <div className="max-w-7xl mx-auto px-4 py-8">
         {filteredPokemon.length === 0 && (searchTerm || selectedTypes.length > 0) ? (
           <div className="text-center py-12">

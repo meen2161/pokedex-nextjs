@@ -53,7 +53,6 @@ const TeamBuildPage: FC = () => {
           {team.map((pokemon, index) => (
             <div key={index} className="relative group h-full">
               {pokemon ? (
-                // Filled Slot
                 <div className="relative h-full">
                   <PokemonCard
                     pokemon={pokemon}
@@ -74,7 +73,6 @@ const TeamBuildPage: FC = () => {
                   </button>
                 </div>
               ) : (
-                // Empty Slot
                 <button
                   onClick={() => handleSlotClick(index)}
                   className="w-full h-64 border-4 border-dashed border-blue-200 rounded-2xl flex flex-col items-center justify-center bg-white/50 hover:bg-white hover:border-blue-400 transition-all duration-300 group cursor-pointer"

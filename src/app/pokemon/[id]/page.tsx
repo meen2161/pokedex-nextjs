@@ -127,7 +127,6 @@ const PokemonDetail: FC = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
-      {/* Header */}
       <div className="bg-white shadow-lg">
         <div className="max-w-4xl mx-auto px-4 py-6">
           <div className="flex items-center space-x-4">
@@ -152,7 +151,6 @@ const PokemonDetail: FC = () => {
       <div className="max-w-4xl mx-auto px-4 py-8">
         <div className="grid md:grid-cols-2 gap-8">
 
-          {/* Pokemon Basic Info */}
           <div className={`bg-gradient-to-br ${bgGradient} rounded-3xl p-8 text-white shadow-2xl`}>
             <div className="text-center">
               <div className="relative w-64 h-64 mx-auto mb-6">
@@ -194,7 +192,6 @@ const PokemonDetail: FC = () => {
                   <p className="text-gray-700 text-2xl">{pokemon.base_experience}</p>
                 </div>
 
-                {/* Pokemon Sound */}
                 {pokemon.cries && pokemon.cries.latest && (
                   <div className="bg-white bg-opacity-20 backdrop-blur-sm rounded-xl p-4 border border-white border-opacity-30">
                     <p className="text-gray-900 text-opacity-80 text-sm mb-3">Pokémon Sound</p>
@@ -234,7 +231,6 @@ const PokemonDetail: FC = () => {
 
           <div className="space-y-6">
 
-            {/* Stats */}
             <div className="bg-white rounded-3xl p-8 shadow-xl border border-gray-100">
               <h2 className="text-2xl font-bold text-gray-800 mb-6">
                 Base Stats
@@ -263,7 +259,6 @@ const PokemonDetail: FC = () => {
               </div>
             </div>
 
-            {/* Abilities */}
             <div className="bg-white rounded-3xl p-8 shadow-xl border border-gray-100">
               <h2 className="text-2xl font-bold text-gray-800 mb-6">Abilities</h2>
               <div className="space-y-3">
@@ -290,7 +285,6 @@ const PokemonDetail: FC = () => {
               </div>
             </div>
 
-            {/* Sprite */}
             <div className="bg-white rounded-3xl p-8 shadow-xl border border-gray-100">
               <h2 className="text-2xl font-bold text-gray-800 mb-6">Sprites</h2>
               <div className="grid grid-cols-2 gap-4">

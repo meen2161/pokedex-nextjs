@@ -44,7 +44,6 @@ const PokemonSelectorModal: FC<PokemonSelectorModalProps> = ({ isOpen, onClose, 
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
       <div className="bg-white rounded-2xl w-full max-w-4xl h-[80vh] flex flex-col shadow-2xl animate-in fade-in zoom-in duration-200">
 
-        {/* Header */}
         <div className="p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50 rounded-t-2xl">
           <h2 className="text-2xl font-bold text-gray-800">Select Pokémon</h2>
           <button
@@ -57,7 +56,6 @@ const PokemonSelectorModal: FC<PokemonSelectorModalProps> = ({ isOpen, onClose, 
           </button>
         </div>
 
-        {/* Search */}
         <div className="p-4 border-b border-gray-100">
           <div className="relative">
             <input
@@ -74,7 +72,6 @@ const PokemonSelectorModal: FC<PokemonSelectorModalProps> = ({ isOpen, onClose, 
           </div>
         </div>
 
-        {/* Grid with Infinite Scroll */}
         <div id="scrollableDiv" className="flex-1 overflow-y-auto p-4 bg-gray-50">
           {displayedPokemon.length === 0 ? (
             <div className="text-center py-10 text-gray-500">
